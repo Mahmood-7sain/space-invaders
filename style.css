@@ -25,7 +25,8 @@
 }
 
 .invader{
-    background-color: blue;
+    /* background-color: blue; */
+    background-image: url("imgs/invader.png");
     border-radius: 10px;
 }
 
