@@ -112,6 +112,7 @@ function moveInvaders(timestamp) {
 
         if (lives > 0) {
             cancelAnimationFrame(globalID)
+            squares[currentShooterIndex].classList.remove('shooter')
             setTimeout(resetGame, 1000) // Reset after a brief delay
         } else {
             resultDisplay.innerHTML = 'Game Over'
