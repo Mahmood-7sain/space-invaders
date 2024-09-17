@@ -1,5 +1,10 @@
+body{
+    background-color: rgb(13, 12, 25);
+    color: white;
+}
+
 .container {
-    /* width: 1024px; */
+    width: 1024px;
     margin: 0 auto;
     align-items: center;
     /* background-color: yellow; */
@@ -9,8 +14,8 @@
 
 
 .grid {
-    width: 300px;
-    height: 300px;
+    width: 600px;
+    height: 600px;
     border: 1px solid black;
     display: flex;
     flex-wrap: wrap;
@@ -18,8 +23,9 @@
 }
 
 .grid div {
-    width: 20px;
-    height: 20px;
+    width: 40px;
+    height: 40px;
+    color : white;
     /* border: 1px solid red;
     box-sizing: border-box; */
 }
@@ -27,17 +33,33 @@
 .invader{
     /* background-color: blue; */
     background-image: url("imgs/invader.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
     border-radius: 10px;
+    /* background-color: white ; */
 }
 
 .shooter {
-    background-color: green;
+    /* background-color: white; */
+    background-image: url("imgs/spaceship.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
 }
 
 .laser {
-    background-color: orange;
+    background-image: url("imgs/rocket.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border-radius: 50%;
 }
 
 .boom{
-    background-color: red;
+    background-image: url("imgs/explosion.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border-radius: 50%;
 }

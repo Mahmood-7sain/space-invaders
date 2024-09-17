@@ -4,18 +4,20 @@ const resultDisplay = document.querySelector('.results')
 const width = 15
 const aliensRemoved = []
 let currentShooterIndex = 202
-let alienMoveInterval = 100 // Time between invader movements in milliseconds
+let alienMoveInterval = 250 // Time between invader movements in milliseconds
 let lastAlienMoveTime = 0
 let isGoingRight = true
 let direction = 1
 let gameOver = false // To track game state
 let score = 0
-let lives = 3     
+let lives = 3    
+let isResetting = false // Flag to indicate that the game is reseting 
+let level = 1;
 
 // Create the grid
 for (let i = 0; i < width * width; i++) {
     const square = document.createElement('div')
-    // square.id = i
+    square.id = i
     grid.appendChild(square)
 }
 
@@ -26,6 +28,9 @@ let alienInvaders = [
     15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
     30, 31, 32, 33, 34, 35, 36, 37, 38, 39
 ]
+
+//Indicate the squares that the invaders should not reach
+let killSquares = [195,196,197,198,199,200,201,202,203,204,205,206,207,208,209]
 
 // Function to draw the aliens on the grid
 function draw() {
@@ -43,7 +48,9 @@ squares[currentShooterIndex].classList.add('shooter')
 // Function to remove aliens from the grid
 function remove() {
     for (let i = 0; i < alienInvaders.length; i++) {
-        squares[alienInvaders[i]].classList.remove('invader')
+        if (alienInvaders[i] !== -1) {
+            squares[alienInvaders[i]].classList.remove('invader')
+        }
     }
 }
 
@@ -75,6 +82,15 @@ function resetGame() {
     currentShooterIndex = 202
     aliensRemoved.length = 0  // Reset the removed aliens array
 
+    for (let i = 0; i <= 224; i++){
+        if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
+            squares[i].classList.remove("shooter")
+        }
+        if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
+          squares[i].classList.remove("laser");
+        }
+    }
+
     remove() // Clear the current invader positions from the grid
     
     // Reset alien positions to the initial layout
@@ -88,6 +104,8 @@ function resetGame() {
     draw()   // Redraw the invaders in their starting positions
     squares[currentShooterIndex].classList.add('shooter') // Reposition shooter
 
+
+    isResetting = false // Re-enable shooting after reset
     globalID = requestAnimationFrame(moveInvaders) // Resume the game loop
 }
 
@@ -97,22 +115,52 @@ function resetGame() {
 function moveInvaders(timestamp) {
     if (gameOver) return // Stop updating the game if game is over
 
+    //When the player clears the aliens => reset with faster aliens
     if (aliensRemoved.length === alienInvaders.length) {
-        resultDisplay.innerHTML = "You Win"
-        gameOver = true
-        cancelAnimationFrame(globalID)    
-        return
+        isResetting = true;
+        cancelAnimationFrame(globalID);
+        squares[currentShooterIndex].classList.remove("shooter");
+        for (let i = 0; i <= 224; i++) {
+          if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
+            squares[i].classList.remove("shooter");
+          }
+          if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
+            squares[i].classList.remove("laser");
+          }
+        }
+        level++;
+        setTimeout(resetGame, 1000);
     }
+
+    let invaderCrossed = false;
+    killSquares.forEach(id => {
+        if (squares[id].classList.contains("invader")) {
+            invaderCrossed = true
+        }
+        return invaderCrossed
+    });
 
 
     // Check for collision before updating invader positions
-    if (squares[currentShooterIndex].classList.contains('invader')) {
+    if (invaderCrossed) {
         lives-- // Decrease lives when player is hit
         resultDisplay.innerHTML = `Lives: ${lives}`
 
         if (lives > 0) {
+            isResetting = true
             cancelAnimationFrame(globalID)
-            squares[currentShooterIndex].classList.remove('shooter')
+            squares[currentShooterIndex].classList.remove("shooter");
+            for (let i = 0; i <= 224; i++) {
+              if (
+                squares[i] !== -1 &&
+                squares[i].classList.contains("shooter")
+              ) {
+                squares[i].classList.remove("shooter");
+              }
+              if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
+                squares[i].classList.remove("laser");
+              }
+            }
             setTimeout(resetGame, 1000) // Reset after a brief delay
         } else {
             resultDisplay.innerHTML = 'Game Over'
@@ -164,44 +212,58 @@ function moveInvaders(timestamp) {
 globalID = requestAnimationFrame(moveInvaders)
 
 
+let lastShotTime = 0; // To store the time of the last shot
+const shootThrottle = 50; // Time in milliseconds to throttle between shots (e.g., 500ms)
+
+
 function shoot(e) {
-    let laserID
-    let currentLaserIndex = currentShooterIndex
+  const currentTime = Date.now(); // Get the current time
+  if (gameOver || isResetting || currentTime - lastShotTime < shootThrottle) {
+    return; // If the game is over, resetting, or the time since the last shot is too short, don't shoot
+  }
 
-    function moveLaser() {
-        if (!gameOver) {
-            squares[currentLaserIndex].classList.remove('laser')
-            currentLaserIndex -= width
+  lastShotTime = currentTime; // Update the last shot time to the current time
 
-            if (currentLaserIndex < 0) {
-                clearInterval(laserID)
-                return
-            }
+  let laserID;
+  let currentLaserIndex = currentShooterIndex;
 
-            squares[currentLaserIndex].classList.add('laser')
+  function moveLaser() {
+    if (!gameOver) {
+      squares[currentLaserIndex].classList.remove("laser");
+      currentLaserIndex -= width;
 
-            if (squares[currentLaserIndex].classList.contains('invader')) {
-                squares[currentLaserIndex].classList.remove('laser')
-                squares[currentLaserIndex].classList.remove('invader')
-                squares[currentLaserIndex].classList.add('boom')
+      if (currentLaserIndex < 0) {
+        clearInterval(laserID);
+        return;
+      }
 
-                setTimeout(() => squares[currentLaserIndex].classList.remove('boom'), 100)
-                clearInterval(laserID)
+      squares[currentLaserIndex].classList.add("laser");
 
-                const alienRemovedIndex = alienInvaders.indexOf(currentLaserIndex)
-                if (alienRemovedIndex !== -1) {
-                    // Mark the alien as removed
-                    alienInvaders[alienRemovedIndex] = -1
-                    aliensRemoved.push(alienRemovedIndex) // Add to removed list
-                    score++
-                    resultDisplay.innerHTML = `Score: ${score} Lives: ${lives}`
-                }
-            }
+      if (squares[currentLaserIndex].classList.contains("invader")) {
+        squares[currentLaserIndex].classList.remove("laser");
+        squares[currentLaserIndex].classList.remove("invader");
+        squares[currentLaserIndex].classList.add("boom");
+
+        setTimeout(
+          () => squares[currentLaserIndex].classList.remove("boom"),
+          100
+        );
+        clearInterval(laserID);
+
+        const alienRemovedIndex = alienInvaders.indexOf(currentLaserIndex);
+        if (alienRemovedIndex !== -1) {
+          // Mark the alien as removed
+          alienInvaders[alienRemovedIndex] = -1;
+          aliensRemoved.push(alienRemovedIndex); // Add to removed list
+          score++;
+          resultDisplay.innerHTML = `Score: ${score} Lives: ${lives}`;
         }
+        return;
+      }
     }
+  }
 
-    if (e.key === ' ')
-        laserID = setInterval(moveLaser, 100)
+  if (e.key === " ") laserID = setInterval(moveLaser, 300);
 }
 
 document.addEventListener('keydown', shoot)
