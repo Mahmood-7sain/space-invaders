@@ -1,3 +1,4 @@
+//HTML elements 
 const grid = document.querySelector(".grid");
 const resultDisplay = document.querySelector(".results");
 const levelIndicator = document.querySelector(".level");
@@ -6,21 +7,36 @@ const optionsMenu = document.querySelector(".options");
 const continueBtn = document.querySelector("#continue");
 const restartBtn = document.querySelector("#restart");
 
-const width = 15;
-const aliensRemoved = [];
-let currentShooterIndex = 202;
+
+const width = 15;  //Used to indicate the grid size
+const aliensRemoved = [];  //To keep a list of the removed aliens
+
+//Setting the start alien positions
+let alienInvaders = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 31,
+  32, 33, 34, 35, 36, 37, 38, 39,
+];
+
+
+let currentShooterIndex = 202; //The starting shooter position
 let alienMoveInterval = 300; // Time between invader movements in milliseconds
-let lastAlienMoveTime = 0;
+let lastAlienMoveTime = 0;  //Keep track of the alien movements
+
+//Direction variables
 let isGoingRight = true;
 let direction = 1;
-let gameOver = false; // To track game state
+
+//Game tracking variables
+let gameOver = false; // To track game status
+let gamePaused = false; //Track game pausing
+let isResetting = false; // Flag to indicate that the game is reseting
 let score = 0;
 let lives = 3;
-let isResetting = false; // Flag to indicate that the game is reseting
 let level = 1;
 let cleared = false; //Indicate that player cleared all aliens
-let win = false;
-let gamePaused = false;
+let win = false; //Player finished all levels
+let globalID; // Controls the animation frames
+
 
 // Create the grid
 for (let i = 0; i < width * width; i++) {
@@ -29,14 +45,12 @@ for (let i = 0; i < width * width; i++) {
   grid.appendChild(square);
 }
 
+// All the squares in the grid
 const squares = Array.from(document.querySelectorAll(".grid div"));
 
-let alienInvaders = [
-  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 31,
-  32, 33, 34, 35, 36, 37, 38, 39,
-];
 
-//Indicate the squares that the invaders should not reach
+
+//Indicate the squares that the invaders should not reach (Deadline)
 let killSquares = [
   195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209,
 ];
@@ -50,8 +64,10 @@ function draw() {
   }
 }
 
+//Draw the aliens
 draw();
 
+//Setting the shooter at the correct start position
 squares[currentShooterIndex].classList.add("shooter");
 
 // Function to remove aliens from the grid
@@ -63,9 +79,10 @@ function remove() {
   }
 }
 
+
 // Move the shooter
 function moveShooter(e) {
-  if (gameOver || gamePaused) return; // Stop the shooter movement after game over
+  if (gameOver || gamePaused) return; // Stop the shooter movement after game over or if the game is paused
   squares[currentShooterIndex].classList.remove("shooter");
 
   switch (e.key) {
@@ -80,12 +97,12 @@ function moveShooter(e) {
   squares[currentShooterIndex].classList.add("shooter");
 }
 
+// Control shooter movement
 document.addEventListener("keydown", moveShooter);
 
-let globalID;
 
+// Resets game state but keep track of lives
 function resetGame() {
-  // Reset game state but keep track of lives
   gameOver = false;
   win = false;
   currentShooterIndex = 202;
@@ -224,10 +241,11 @@ function moveInvaders(timestamp) {
   globalID = requestAnimationFrame(moveInvaders); // Continue the animation loop
 }
 
+//Move invaders
 globalID = requestAnimationFrame(moveInvaders);
 
 let lastShotTime = 0; // To store the time of the last shot
-const shootThrottle = 50; // Time in milliseconds to throttle between shots (e.g., 500ms)
+const shootThrottle = 100; // Time in milliseconds to throttle between shots (e.g., 500ms)
 
 function shoot(e) {
   const currentTime = Date.now(); // Get the current time
