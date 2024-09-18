@@ -1,65 +1,115 @@
-body{
-    background-color: rgb(13, 12, 25);
-    color: white;
+body {
+  background-color: rgb(13, 12, 25);
+  color: white;
 }
 
 .container {
-    width: 1024px;
-    margin: 0 auto;
-    align-items: center;
-    /* background-color: yellow; */
-    /* text-align: center; */
+  width: 100%;
+  margin: 0 auto;
+  align-items: center;
+  text-align: center;
+  /* background-color: yellow; */
+  /* text-align: center; */
 }
 
+.heading {
+  color: white;
+  font-size: 80px;
+  font-family: "Pixelify Sans", cursive;
+}
 
+a{
+    text-decoration: none;
+}
+
+button{
+    font-size: 20px;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 700;
+    background-color: white;
+}
+
+button:hover{
+    background-color: rgb(154, 151, 151);
+    cursor: pointer;
+}
 
 .grid {
-    width: 600px;
-    height: 600px;
-    border: 1px solid black;
-    display: flex;
-    flex-wrap: wrap;
-    /* background-color: red; */
+  width: 600px;
+  height: 600px;
+  border: 1px solid black;
+  display: flex;
+  flex-wrap: wrap;
+  /* background-color: red; */
 }
 
 .grid div {
-    width: 40px;
-    height: 40px;
-    color : white;
-    /* border: 1px solid red;
+  width: 40px;
+  height: 40px;
+  color: white;
+  /* border: 1px solid red;
     box-sizing: border-box; */
 }
 
-.invader{
-    /* background-color: blue; */
-    background-image: url("imgs/invader.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-    border-radius: 10px;
-    /* background-color: white ; */
+.invader {
+  /* background-color: blue; */
+  background-image: url("imgs/invader.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  border-radius: 10px;
+  /* background-color: white ; */
 }
 
 .shooter {
-    /* background-color: white; */
-    background-image: url("imgs/spaceship.png");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
+  /* background-color: white; */
+  background-image: url("imgs/spaceship.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .laser {
-    background-image: url("imgs/rocket.png");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    border-radius: 50%;
+  background-image: url("imgs/rocket.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 50%;
 }
 
-.boom{
-    background-image: url("imgs/explosion.png");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    border-radius: 50%;
+.boom {
+  background-image: url("imgs/explosion.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 50%;
+}
+
+.info {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+
+.options{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000; /* Higher z-index to ensure it overlaps other elements */
+    display: none;
+    width: 400px;
+    min-height: 100px;
+    background-color: rgb(85, 50, 112);
+    border: 1px solid white;
+    border-radius: 10px;
+    /* padding: 20px 0; */
+}
+
+.options button{
+    margin-bottom: 20px;
+    margin-top: 20px;
+    width: 150px;
 }
