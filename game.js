@@ -1,8 +1,10 @@
 const grid = document.querySelector(".grid");
 const resultDisplay = document.querySelector(".results");
 const levelIndicator = document.querySelector(".level");
-menuBtn = document.querySelector(".menuBtn");
-optionsMenu = document.querySelector(".options");
+const menuBtn = document.querySelector(".menuBtn");
+const optionsMenu = document.querySelector(".options");
+const continueBtn = document.querySelector("#continue");
+const restartBtn = document.querySelector("#restart");
 
 const width = 15;
 const aliensRemoved = [];
@@ -18,6 +20,7 @@ let isResetting = false; // Flag to indicate that the game is reseting
 let level = 1;
 let cleared = false; //Indicate that player cleared all aliens
 let win = false;
+let gamePaused = false;
 
 // Create the grid
 for (let i = 0; i < width * width; i++) {
@@ -62,7 +65,7 @@ function remove() {
 
 // Move the shooter
 function moveShooter(e) {
-  if (gameOver) return; // Stop the shooter movement after game over
+  if (gameOver || gamePaused) return; // Stop the shooter movement after game over
   squares[currentShooterIndex].classList.remove("shooter");
 
   switch (e.key) {
@@ -123,7 +126,7 @@ function resetGame() {
 
 // Move the invaders
 function moveInvaders(timestamp) {
-  if (gameOver) return; // Stop updating the game if game is over
+  if (gameOver || gamePaused) return; // Stop updating the game if game is over
 
   if (win) {
     resultDisplay.innerHTML = "You WIN!";
@@ -238,7 +241,7 @@ function shoot(e) {
   let currentLaserIndex = currentShooterIndex;
 
   function moveLaser() {
-    if (!gameOver) {
+    if (!gameOver && !isResetting && !gamePaused) {
       squares[currentLaserIndex].classList.remove("laser");
       currentLaserIndex -= width;
 
@@ -278,12 +281,71 @@ function shoot(e) {
 
 document.addEventListener("keydown", shoot);
 
+function pauseGame() {
+  gamePaused = true;
+  cancelAnimationFrame(globalID);
+}
+
+function continueGame() {
+  gamePaused = false;
+  globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
+}
+
+function restartGame() {
+  // Reset game state but keep track of lives
+  gameOver = false;
+  win = false;
+  currentShooterIndex = 202;
+  aliensRemoved.length = 0; // Reset the removed aliens array
+  score = 0;
+  level = 1;
+  lives = 3;
+  alienMoveInterval = 300;
+
+
+  for (let i = 0; i <= 224; i++) {
+    if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
+      squares[i].classList.remove("shooter");
+    }
+    if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
+      squares[i].classList.remove("laser");
+    }
+  }
+
+  remove(); // Clear the current invader positions from the grid
+
+  // Reset alien positions to the initial layout
+  alienInvaders = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30,
+    31, 32, 33, 34, 35, 36, 37, 38, 39,
+  ];
+
+  draw(); // Redraw the invaders in their starting positions
+  squares[currentShooterIndex].classList.add("shooter"); // Reposition shooter
+
+  isResetting = false; // Re-enable shooting after reset
+  gamePaused = false;
+
+
+  globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
+}
+
 menuBtn.addEventListener("click", function () {
   if (optionsMenu.style.display === "block") {
-      optionsMenu.style.display = "none";
-      //Continue()
+    optionsMenu.style.display = "none";
+    continueGame();
   } else {
-      optionsMenu.style.display = "block";
-      //Puase()
+    optionsMenu.style.display = "block";
+    pauseGame();
   }
+});
+
+continueBtn.addEventListener("click", function () {
+  optionsMenu.style.display = "none";
+  continueGame();
+});
+
+restartBtn.addEventListener("click", function () {
+  optionsMenu.style.display = "none";
+  restartGame();
 });
