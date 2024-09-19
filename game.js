@@ -1,15 +1,17 @@
-//HTML elements 
+//HTML elements
 const grid = document.querySelector(".grid");
 const resultDisplay = document.querySelector(".results");
-const levelIndicator = document.querySelector(".level");
 const menuBtn = document.querySelector(".menuBtn");
 const optionsMenu = document.querySelector(".options");
 const continueBtn = document.querySelector("#continue");
 const restartBtn = document.querySelector("#restart");
+const scoreStat = document.querySelector(".score");
+const liveStat = document.querySelector(".lives");
+const levelStat = document.querySelector(".level");
+const timer = document.querySelector(".timer");
 
-
-const width = 15;  //Used to indicate the grid size
-const aliensRemoved = [];  //To keep a list of the removed aliens
+const width = 15; //Used to indicate the grid size
+const aliensRemoved = []; //To keep a list of the removed aliens
 
 //Setting the start alien positions
 let alienInvaders = [
@@ -17,10 +19,9 @@ let alienInvaders = [
   32, 33, 34, 35, 36, 37, 38, 39,
 ];
 
-
 let currentShooterIndex = 202; //The starting shooter position
 let alienMoveInterval = 300; // Time between invader movements in milliseconds
-let lastAlienMoveTime = 0;  //Keep track of the alien movements
+let lastAlienMoveTime = 0; //Keep track of the alien movements
 
 //Direction variables
 let isGoingRight = true;
@@ -37,6 +38,28 @@ let cleared = false; //Indicate that player cleared all aliens
 let win = false; //Player finished all levels
 let globalID; // Controls the animation frames
 
+//Timer variables
+let elapsedTime = 0;
+let timerInterval;
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    elapsedTime++;
+    timer.innerHTML = `${formatTime(elapsedTime)}`;
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}m ${remainingSeconds}s`;
+}
+
+resultDisplay.innerHTML = "";
 
 // Create the grid
 for (let i = 0; i < width * width; i++) {
@@ -47,8 +70,6 @@ for (let i = 0; i < width * width; i++) {
 
 // All the squares in the grid
 const squares = Array.from(document.querySelectorAll(".grid div"));
-
-
 
 //Indicate the squares that the invaders should not reach (Deadline)
 let killSquares = [
@@ -67,6 +88,8 @@ function draw() {
 //Draw the aliens
 draw();
 
+startTimer();
+
 //Setting the shooter at the correct start position
 squares[currentShooterIndex].classList.add("shooter");
 
@@ -78,7 +101,6 @@ function remove() {
     }
   }
 }
-
 
 // Move the shooter
 function moveShooter(e) {
@@ -100,7 +122,6 @@ function moveShooter(e) {
 // Control shooter movement
 document.addEventListener("keydown", moveShooter);
 
-
 // Resets game state but keep track of lives
 function resetGame() {
   gameOver = false;
@@ -112,7 +133,7 @@ function resetGame() {
     level++;
     alienMoveInterval -= 50;
     cleared = false;
-    levelIndicator.innerHTML = "Level: " + level;
+    levelStat.innerHTML = level;
   } else if (level === 6) {
     win = true;
   }
@@ -146,7 +167,10 @@ function moveInvaders(timestamp) {
   if (gameOver || gamePaused) return; // Stop updating the game if game is over
 
   if (win) {
+    stopTimer();
     resultDisplay.innerHTML = "You WIN!";
+    optionsMenu.style.display = "block";
+    pauseGame();
     return;
   }
 
@@ -178,8 +202,8 @@ function moveInvaders(timestamp) {
   // Check for collision before updating invader positions
   if (invaderCrossed) {
     lives--; // Decrease lives when player is hit
-    resultDisplay.innerHTML = `Lives: ${lives}`;
-
+    liveStat.innerHTML = lives;
+    console.log(lives);
     if (lives > 0) {
       isResetting = true;
       cancelAnimationFrame(globalID);
@@ -195,8 +219,11 @@ function moveInvaders(timestamp) {
       setTimeout(resetGame, 1000); // Reset after a brief delay
     } else {
       resultDisplay.innerHTML = "Game Over";
+      stopTimer();
       gameOver = true;
       cancelAnimationFrame(globalID);
+      optionsMenu.style.display = "block";
+      pauseGame();
     }
 
     return;
@@ -287,7 +314,7 @@ function shoot(e) {
           alienInvaders[alienRemovedIndex] = -1;
           aliensRemoved.push(alienRemovedIndex); // Add to removed list
           score++;
-          resultDisplay.innerHTML = `Score: ${score} Lives: ${lives}`;
+          scoreStat.innerHTML = score;
         }
         return;
       }
@@ -300,26 +327,35 @@ function shoot(e) {
 document.addEventListener("keydown", shoot);
 
 function pauseGame() {
+  stopTimer();
   gamePaused = true;
   cancelAnimationFrame(globalID);
 }
 
 function continueGame() {
+  startTimer();
   gamePaused = false;
-  globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
+  if (!gameOver) {
+    globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
+  }
 }
 
 function restartGame() {
-  // Reset game state but keep track of lives
+  elapsedTime = 0;
   gameOver = false;
   win = false;
+  cleared = false;
+  isResetting = false; // Re-enable shooting after reset
   currentShooterIndex = 202;
   aliensRemoved.length = 0; // Reset the removed aliens array
   score = 0;
   level = 1;
   lives = 3;
   alienMoveInterval = 300;
-
+  scoreStat.innerHTML = score;
+  liveStat.innerHTML = lives;
+  levelStat.innerHTML = level;
+  resultDisplay.innerHTML = "";
 
   for (let i = 0; i <= 224; i++) {
     if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
@@ -327,6 +363,9 @@ function restartGame() {
     }
     if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
       squares[i].classList.remove("laser");
+    }
+    if (squares[i].classList.contains("invader")) {
+      squares[i].classList.remove("invader");
     }
   }
 
@@ -341,9 +380,9 @@ function restartGame() {
   draw(); // Redraw the invaders in their starting positions
   squares[currentShooterIndex].classList.add("shooter"); // Reposition shooter
 
-  isResetting = false; // Re-enable shooting after reset
   gamePaused = false;
 
+  startTimer();
 
   globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
 }

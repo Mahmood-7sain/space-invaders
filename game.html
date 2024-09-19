@@ -12,11 +12,11 @@
     <div class="container">
         <a href="index.html"><h1 class="heading">Space Invaders</h1></a>
         <div class="info">
-            <div>
-
-                <h1 class="score">0</h1>
-                <h1 class="lives">3</h1>
-                <h1 class="level">Level: 1</h1>
+            <div style="display: flex;" class="stats">
+                <h1>Score: <b class="score">0</b></h1>
+                <h1>Lives: <b class="lives" style="color: red;">3</b></h1>
+                <h1>Level: <b class="level">1</b></h1>
+                <h1>Time: <b class="timer"></b></h1>
             </div>
 
             <div class="menu">
@@ -25,6 +25,7 @@
         </div>
 
         <div class="options">
+            <h4 class="results"></h4>
             <button id="continue">Continue</button><br>
             <button id="restart">Restart</button><br>
             <a href="/index.html"><button id="home">Home</button></a>

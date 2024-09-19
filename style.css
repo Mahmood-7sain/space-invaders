@@ -1,6 +1,10 @@
 body {
   background-color: rgb(13, 12, 25);
   color: white;
+  background-image: url("imgs/space.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .container {
@@ -41,7 +45,10 @@ button:hover{
   border: 1px solid black;
   display: flex;
   flex-wrap: wrap;
-  /* background-color: red; */
+  background-color: rgb(7, 2, 66);
+  margin: 0 auto;
+  border-radius: 5px;
+  box-shadow: 0 0 80px black;
 }
 
 .grid div {
@@ -89,6 +96,11 @@ button:hover{
 .info {
   display: flex;
   justify-content: space-between;
+}
+
+
+.stats h1{
+    margin-right: 20px;
 }
 
 
