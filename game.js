@@ -37,6 +37,7 @@ let level = 1;
 let cleared = false; //Indicate that player cleared all aliens
 let win = false; //Player finished all levels
 let globalID; // Controls the animation frames
+let activeLasers = [];
 
 //Timer variables
 let elapsedTime = 0;
@@ -103,27 +104,28 @@ function remove() {
 }
 
 // Move the shooter
-function moveShooter(e) {
-  if (gameOver || gamePaused) return; // Stop the shooter movement after game over or if the game is paused
-  squares[currentShooterIndex].classList.remove("shooter");
+// function moveShooter(e) {
+//   if (gameOver || gamePaused) return; // Stop the shooter movement after game over or if the game is paused
+//   squares[currentShooterIndex].classList.remove("shooter");
 
-  switch (e.key) {
-    case "ArrowLeft":
-      if (currentShooterIndex % width !== 0) currentShooterIndex -= 1;
-      break;
-    case "ArrowRight":
-      if (currentShooterIndex % width < width - 1) currentShooterIndex += 1;
-      break;
-  }
+//   switch (e.key) {
+//     case "ArrowLeft":
+//       if (currentShooterIndex % width !== 0) currentShooterIndex -= 1;
+//       break;
+//     case "ArrowRight":
+//       if (currentShooterIndex % width < width - 1) currentShooterIndex += 1;
+//       break;
+//   }
 
-  squares[currentShooterIndex].classList.add("shooter");
-}
+//   squares[currentShooterIndex].classList.add("shooter");
+// }
 
 // Control shooter movement
 document.addEventListener("keydown", moveShooter);
 
 // Resets game state but keep track of lives
 function resetGame() {
+  clearActiveLasers();
   gameOver = false;
   win = false;
   currentShooterIndex = 202;
@@ -167,6 +169,7 @@ function moveInvaders(timestamp) {
   if (gameOver || gamePaused) return; // Stop updating the game if game is over
 
   if (win) {
+    gameOver = true;
     stopTimer();
     resultDisplay.innerHTML = "You WIN!";
     optionsMenu.style.display = "block";
@@ -288,7 +291,7 @@ function shoot() {
   }
 
   lastShotTime = currentTime; // Update the last shot time to the current time
-  canShoot = false; // Disable shooting until the space key is released
+  //   canShoot = false; // Disable shooting until the space key is released
 
   let laserID;
   let currentLaserIndex = currentShooterIndex;
@@ -330,6 +333,13 @@ function shoot() {
   }
 
   laserID = setInterval(moveLaser, 300);
+  activeLasers.push(laserID); // Store the laser interval
+}
+
+// Function to clear all active lasers
+function clearActiveLasers() {
+  activeLasers.forEach(clearInterval); // Clear each active laser interval
+  activeLasers = []; // Reset the array
 }
 
 // Handle movement (left and right)
@@ -370,102 +380,6 @@ document.addEventListener("keyup", (e) => {
   }
 });
 
-
-// let lastShotTime = 0; // To store the time of the last shot
-// const shootThrottle = 100; // Time in milliseconds to throttle between shots (e.g., 500ms)
-// let canShoot = true; // Track if shooting is allowed
-// let keysPressed = {}; // Object to store the state of pressed keys
-
-// function shoot() {
-//   const currentTime = Date.now(); // Get the current time
-//   if (gameOver || isResetting || !canShoot || currentTime - lastShotTime < shootThrottle) {
-//     return; // If the game is over, resetting, or the space is held down, don't shoot
-//   }
-
-//   lastShotTime = currentTime; // Update the last shot time to the current time
-//   canShoot = false; // Disable shooting until the space key is released
-
-//   let laserID;
-//   let currentLaserIndex = currentShooterIndex;
-
-//   function moveLaser() {
-//     if (!gameOver && !isResetting && !gamePaused) {
-//       squares[currentLaserIndex].classList.remove("laser");
-//       currentLaserIndex -= width;
-
-//       if (currentLaserIndex < 0) {
-//         clearInterval(laserID);
-//         return;
-//       }
-
-//       squares[currentLaserIndex].classList.add("laser");
-
-//       if (squares[currentLaserIndex].classList.contains("invader")) {
-//         squares[currentLaserIndex].classList.remove("laser");
-//         squares[currentLaserIndex].classList.remove("invader");
-//         squares[currentLaserIndex].classList.add("boom");
-
-//         setTimeout(
-//           () => squares[currentLaserIndex].classList.remove("boom"),
-//           100
-//         );
-//         clearInterval(laserID);
-
-//         const alienRemovedIndex = alienInvaders.indexOf(currentLaserIndex);
-//         if (alienRemovedIndex !== -1) {
-//           // Mark the alien as removed
-//           alienInvaders[alienRemovedIndex] = -1;
-//           aliensRemoved.push(alienRemovedIndex); // Add to removed list
-//           score++;
-//           scoreStat.innerHTML = score;
-//         }
-//         return;
-//       }
-//     }
-//   }
-
-//   laserID = setInterval(moveLaser, 300);
-// }
-
-// // Handle movement (left and right)
-// function moveShooter() {
-//   if (!gameOver && !isResetting && !gamePaused) {
-//     squares[currentShooterIndex].classList.remove('shooter');
-
-//     // Move left
-//     if (keysPressed['ArrowLeft'] && currentShooterIndex % width !== 0) {
-//       currentShooterIndex -= 1;
-//     }
-    
-//     // Move right
-//     if (keysPressed['ArrowRight'] && currentShooterIndex % width < width - 1) {
-//       currentShooterIndex += 1;
-//     }
-
-//     squares[currentShooterIndex].classList.add('shooter');
-//   }
-// }
-
-// // Listen for keydown and keyup events
-// document.addEventListener("keydown", (e) => {
-//   keysPressed[e.key] = true; // Mark key as pressed
-
-//   if (e.key === " ") {
-//     shoot(); // Shoot when spacebar is pressed
-//   }
-
-//   moveShooter(); // Trigger movement when keys are pressed
-// });
-
-// document.addEventListener("keyup", (e) => {
-//   keysPressed[e.key] = false; // Mark key as released
-
-//   if (e.key === " ") {
-//     canShoot = true; // Re-enable shooting when the space key is released
-//   }
-// });
-
-
 function pauseGame() {
   stopTimer();
   gamePaused = true;
@@ -473,14 +387,15 @@ function pauseGame() {
 }
 
 function continueGame() {
-  startTimer();
   gamePaused = false;
   if (!gameOver) {
     globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
+    startTimer();
   }
 }
 
 function restartGame() {
+  clearActiveLasers(); // Clear all active lasers when restarting the game
   elapsedTime = 0;
   gameOver = false;
   win = false;
