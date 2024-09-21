@@ -20,7 +20,7 @@ let alienInvaders = [
 ];
 
 let currentShooterIndex = 202; //The starting shooter position
-let alienMoveInterval = 300; // Time between invader movements in milliseconds
+let alienMoveInterval = 500; // Time between invader movements in milliseconds
 let lastAlienMoveTime = 0; //Keep track of the alien movements
 
 //Direction variables
@@ -273,14 +273,22 @@ globalID = requestAnimationFrame(moveInvaders);
 
 let lastShotTime = 0; // To store the time of the last shot
 const shootThrottle = 100; // Time in milliseconds to throttle between shots (e.g., 500ms)
+let canShoot = true; // Track if shooting is allowed
+let keysPressed = {}; // Object to store the state of pressed keys
 
-function shoot(e) {
+function shoot() {
   const currentTime = Date.now(); // Get the current time
-  if (gameOver || isResetting || currentTime - lastShotTime < shootThrottle) {
-    return; // If the game is over, resetting, or the time since the last shot is too short, don't shoot
+  if (
+    gameOver ||
+    isResetting ||
+    !canShoot ||
+    currentTime - lastShotTime < shootThrottle
+  ) {
+    return; // If the game is over, resetting, or the space is held down, don't shoot
   }
 
   lastShotTime = currentTime; // Update the last shot time to the current time
+  canShoot = false; // Disable shooting until the space key is released
 
   let laserID;
   let currentLaserIndex = currentShooterIndex;
@@ -321,10 +329,142 @@ function shoot(e) {
     }
   }
 
-  if (e.key === " ") laserID = setInterval(moveLaser, 300);
+  laserID = setInterval(moveLaser, 300);
 }
 
-document.addEventListener("keydown", shoot);
+// Handle movement (left and right)
+function moveShooter() {
+  if (!gameOver && !isResetting && !gamePaused) {
+    squares[currentShooterIndex].classList.remove("shooter");
+
+    // Move left
+    if (keysPressed["ArrowLeft"] && currentShooterIndex % width !== 0) {
+      currentShooterIndex -= 1;
+    }
+
+    // Move right
+    if (keysPressed["ArrowRight"] && currentShooterIndex % width < width - 1) {
+      currentShooterIndex += 1;
+    }
+
+    squares[currentShooterIndex].classList.add("shooter");
+  }
+}
+
+// Listen for keydown and keyup events
+document.addEventListener("keydown", (e) => {
+  keysPressed[e.key] = true; // Mark key as pressed
+
+  if (e.key === " ") {
+    shoot(); // Shoot when spacebar is pressed
+  }
+
+  moveShooter(); // Trigger movement when keys are pressed
+});
+
+document.addEventListener("keyup", (e) => {
+  keysPressed[e.key] = false; // Mark key as released
+
+  if (e.key === " ") {
+    canShoot = true; // Re-enable shooting when the space key is released
+  }
+});
+
+
+// let lastShotTime = 0; // To store the time of the last shot
+// const shootThrottle = 100; // Time in milliseconds to throttle between shots (e.g., 500ms)
+// let canShoot = true; // Track if shooting is allowed
+// let keysPressed = {}; // Object to store the state of pressed keys
+
+// function shoot() {
+//   const currentTime = Date.now(); // Get the current time
+//   if (gameOver || isResetting || !canShoot || currentTime - lastShotTime < shootThrottle) {
+//     return; // If the game is over, resetting, or the space is held down, don't shoot
+//   }
+
+//   lastShotTime = currentTime; // Update the last shot time to the current time
+//   canShoot = false; // Disable shooting until the space key is released
+
+//   let laserID;
+//   let currentLaserIndex = currentShooterIndex;
+
+//   function moveLaser() {
+//     if (!gameOver && !isResetting && !gamePaused) {
+//       squares[currentLaserIndex].classList.remove("laser");
+//       currentLaserIndex -= width;
+
+//       if (currentLaserIndex < 0) {
+//         clearInterval(laserID);
+//         return;
+//       }
+
+//       squares[currentLaserIndex].classList.add("laser");
+
+//       if (squares[currentLaserIndex].classList.contains("invader")) {
+//         squares[currentLaserIndex].classList.remove("laser");
+//         squares[currentLaserIndex].classList.remove("invader");
+//         squares[currentLaserIndex].classList.add("boom");
+
+//         setTimeout(
+//           () => squares[currentLaserIndex].classList.remove("boom"),
+//           100
+//         );
+//         clearInterval(laserID);
+
+//         const alienRemovedIndex = alienInvaders.indexOf(currentLaserIndex);
+//         if (alienRemovedIndex !== -1) {
+//           // Mark the alien as removed
+//           alienInvaders[alienRemovedIndex] = -1;
+//           aliensRemoved.push(alienRemovedIndex); // Add to removed list
+//           score++;
+//           scoreStat.innerHTML = score;
+//         }
+//         return;
+//       }
+//     }
+//   }
+
+//   laserID = setInterval(moveLaser, 300);
+// }
+
+// // Handle movement (left and right)
+// function moveShooter() {
+//   if (!gameOver && !isResetting && !gamePaused) {
+//     squares[currentShooterIndex].classList.remove('shooter');
+
+//     // Move left
+//     if (keysPressed['ArrowLeft'] && currentShooterIndex % width !== 0) {
+//       currentShooterIndex -= 1;
+//     }
+    
+//     // Move right
+//     if (keysPressed['ArrowRight'] && currentShooterIndex % width < width - 1) {
+//       currentShooterIndex += 1;
+//     }
+
+//     squares[currentShooterIndex].classList.add('shooter');
+//   }
+// }
+
+// // Listen for keydown and keyup events
+// document.addEventListener("keydown", (e) => {
+//   keysPressed[e.key] = true; // Mark key as pressed
+
+//   if (e.key === " ") {
+//     shoot(); // Shoot when spacebar is pressed
+//   }
+
+//   moveShooter(); // Trigger movement when keys are pressed
+// });
+
+// document.addEventListener("keyup", (e) => {
+//   keysPressed[e.key] = false; // Mark key as released
+
+//   if (e.key === " ") {
+//     canShoot = true; // Re-enable shooting when the space key is released
+//   }
+// });
+
 
 function pauseGame() {
   stopTimer();
