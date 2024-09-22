@@ -1,3 +1,7 @@
+html{
+    height: 100%;
+}
+
 body {
   background-color: rgb(13, 12, 25);
   color: white;
@@ -42,12 +46,19 @@ button:hover{
 .grid {
   width: 600px;
   height: 600px;
-  border: 1px solid black;
   display: flex;
   flex-wrap: wrap;
-  background-color: rgb(7, 2, 66);
   margin: 0 auto;
-  border-radius: 5px;
+}
+
+.gridCont{
+    width: 640px;
+    height: 620px;
+    margin: 0 auto;
+    border: 1px solid black;
+    padding-top: 20px;
+    background-color: rgb(7, 2, 66);
+    border-radius: 5px;
   box-shadow: 0 0 80px black;
 }
 

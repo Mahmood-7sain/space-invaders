@@ -131,12 +131,12 @@ function resetGame() {
   currentShooterIndex = 202;
   aliensRemoved.length = 0; // Reset the removed aliens array
 
-  if (cleared && level < 6) {
+  if (cleared && level < 11) {
     level++;
     alienMoveInterval -= 50;
     cleared = false;
     levelStat.innerHTML = level;
-  } else if (level === 6) {
+  } else if (level === 11) {
     win = true;
   }
 
@@ -182,14 +182,14 @@ function moveInvaders(timestamp) {
     isResetting = true;
     cancelAnimationFrame(globalID);
     squares[currentShooterIndex].classList.remove("shooter");
-    for (let i = 0; i <= 224; i++) {
-      if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
-        squares[i].classList.remove("shooter");
-      }
-      if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
-        squares[i].classList.remove("laser");
-      }
-    }
+    // for (let i = 0; i <= 224; i++) {
+    //   if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
+    //     squares[i].classList.remove("shooter");
+    //   }
+    //   if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
+    //     squares[i].classList.remove("laser");
+    //   }
+    // }
     cleared = true;
     setTimeout(resetGame, 1000);
   }
@@ -211,14 +211,14 @@ function moveInvaders(timestamp) {
       isResetting = true;
       cancelAnimationFrame(globalID);
       squares[currentShooterIndex].classList.remove("shooter");
-      for (let i = 0; i <= 224; i++) {
-        if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
-          squares[i].classList.remove("shooter");
-        }
-        if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
-          squares[i].classList.remove("laser");
-        }
-      }
+      //   for (let i = 0; i <= 224; i++) {
+      //     if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
+      //       squares[i].classList.remove("shooter");
+      //     }
+      //     if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
+      //       squares[i].classList.remove("laser");
+      //     }
+      //   }
       setTimeout(resetGame, 1000); // Reset after a brief delay
     } else {
       resultDisplay.innerHTML = "Game Over";
@@ -275,7 +275,7 @@ function moveInvaders(timestamp) {
 globalID = requestAnimationFrame(moveInvaders);
 
 let lastShotTime = 0; // To store the time of the last shot
-const shootThrottle = 100; // Time in milliseconds to throttle between shots (e.g., 500ms)
+const shootThrottle = 200; // Time in milliseconds to throttle between shots
 let canShoot = true; // Track if shooting is allowed
 let keysPressed = {}; // Object to store the state of pressed keys
 
@@ -291,7 +291,7 @@ function shoot() {
   }
 
   lastShotTime = currentTime; // Update the last shot time to the current time
-  //   canShoot = false; // Disable shooting until the space key is released
+  canShoot = false; // Disable shooting until the space key is released
 
   let laserID;
   let currentLaserIndex = currentShooterIndex;
@@ -406,31 +406,27 @@ function restartGame() {
   score = 0;
   level = 1;
   lives = 3;
-  alienMoveInterval = 300;
+  alienMoveInterval = 500;
   scoreStat.innerHTML = score;
   liveStat.innerHTML = lives;
   levelStat.innerHTML = level;
   resultDisplay.innerHTML = "";
 
   for (let i = 0; i <= 224; i++) {
-    if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
-      squares[i].classList.remove("shooter");
-    }
-    if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
-      squares[i].classList.remove("laser");
-    }
-    if (squares[i].classList.contains("invader")) {
-      squares[i].classList.remove("invader");
-    }
+    squares[i].classList.remove("shooter", "laser", "invader", "boom");
   }
 
-  remove(); // Clear the current invader positions from the grid
+  //   remove(); // Clear the current invader positions from the grid
 
   // Reset alien positions to the initial layout
   alienInvaders = [
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30,
     31, 32, 33, 34, 35, 36, 37, 38, 39,
   ];
+
+  // Reset direction variables
+  isGoingRight = true;
+  direction = 1;
 
   draw(); // Redraw the invaders in their starting positions
   squares[currentShooterIndex].classList.add("shooter"); // Reposition shooter
