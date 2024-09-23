@@ -1,5 +1,5 @@
-html{
-    height: 100%;
+html {
+  height: 100%;
 }
 
 body {
@@ -26,21 +26,21 @@ body {
   font-family: "Pixelify Sans", cursive;
 }
 
-a{
-    text-decoration: none;
+a {
+  text-decoration: none;
 }
 
-button{
-    font-size: 20px;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-weight: 700;
-    background-color: white;
+button {
+  font-size: 20px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 700;
+  background-color: white;
 }
 
-button:hover{
-    background-color: rgb(154, 151, 151);
-    cursor: pointer;
+button:hover {
+  background-color: rgb(154, 151, 151);
+  cursor: pointer;
 }
 
 .grid {
@@ -51,14 +51,14 @@ button:hover{
   margin: 0 auto;
 }
 
-.gridCont{
-    width: 640px;
-    height: 620px;
-    margin: 0 auto;
-    border: 1px solid black;
-    padding-top: 20px;
-    background-color: rgb(7, 2, 66);
-    border-radius: 5px;
+.gridCont {
+  width: 640px;
+  height: 620px;
+  margin: 0 auto;
+  border: 1px solid black;
+  padding-top: 20px;
+  background-color: rgb(7, 2, 66);
+  border-radius: 5px;
   box-shadow: 0 0 80px black;
 }
 
@@ -96,6 +96,15 @@ button:hover{
   border-radius: 50%;
 }
 
+.bomb {
+  background-image: url("imgs/bomb.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 50%;
+  background-color: red;
+}
+
 .boom {
   background-image: url("imgs/explosion.png");
   background-position: center;
@@ -110,29 +119,26 @@ button:hover{
   transform: translateZ(0);
 }
 
-
-.stats h1{
-    margin-right: 20px;
+.stats h1 {
+  margin-right: 20px;
 }
 
-
-
-.options{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000; /* Higher z-index to ensure it overlaps other elements */
-    display: none;
-    width: 400px;
-    min-height: 100px;
-    background-color: rgb(85, 50, 112);
-    border: 1px solid white;
-    border-radius: 10px;
+.options {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000; /* Higher z-index to ensure it overlaps other elements */
+  display: none;
+  width: 400px;
+  min-height: 100px;
+  background-color: rgb(85, 50, 112);
+  border: 1px solid white;
+  border-radius: 10px;
 }
 
-.options button{
-    margin-bottom: 20px;
-    margin-top: 20px;
-    width: 150px;
+.options button {
+  margin-bottom: 20px;
+  margin-top: 20px;
+  width: 150px;
 }

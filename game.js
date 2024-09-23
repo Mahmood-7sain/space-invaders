@@ -9,6 +9,7 @@ const scoreStat = document.querySelector(".score");
 const liveStat = document.querySelector(".lives");
 const levelStat = document.querySelector(".level");
 const timer = document.querySelector(".timer");
+const fpsCount = document.querySelector(".fpsCounter");
 
 const width = 15; //Used to indicate the grid size
 const aliensRemoved = []; //To keep a list of the removed aliens
@@ -18,6 +19,12 @@ let alienInvaders = [
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 31,
   32, 33, 34, 35, 36, 37, 38, 39,
 ];
+
+//Bomb drop variables
+let validAliens = alienInvaders.filter((alien) => alien !== -1); // Fix the arrow function syntax
+let bombID;
+let activeBombs = [];
+let dropBombInterval = 8000;
 
 let currentShooterIndex = 202; //The starting shooter position
 let alienMoveInterval = 500; // Time between invader movements in milliseconds
@@ -37,12 +44,13 @@ let level = 1;
 let cleared = false; //Indicate that player cleared all aliens
 let win = false; //Player finished all levels
 let globalID; // Controls the animation frames
-let activeLasers = [];
+let activeLasers = []; //To track the on screen lasers
 
 //Timer variables
 let elapsedTime = 0;
 let timerInterval;
 
+//Starts the timer
 function startTimer() {
   timerInterval = setInterval(() => {
     elapsedTime++;
@@ -50,16 +58,43 @@ function startTimer() {
   }, 1000);
 }
 
+//Stops the timer
 function stopTimer() {
   clearInterval(timerInterval);
 }
 
+// function calculateFPS() {
+//   let startTime = performance.now();
+//   let frameCount = 0;
+
+//   function updateFPS() {
+//     const currentTime = performance.now();
+//     const elapsedTime = currentTime - startTime;
+
+//     if (elapsedTime >= 1000) {
+//       // Measure FPS over 1 second
+//       const fps = frameCount / (elapsedTime / 1000);
+//       // console.log(`FPS: ${fps}`); // Log the calculated FPS
+//       fpsCount.innerHTML = `${fps.toFixed(2)}`;
+//       frameCount = 0;
+//       startTime = currentTime;
+//     }
+
+//     frameCount++;
+//     requestAnimationFrame(updateFPS);
+//   }
+
+//   requestAnimationFrame(updateFPS);
+// }
+
+//Formats the play time
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes}m ${remainingSeconds}s`;
 }
 
+//Set the result in the menu to be empty
 resultDisplay.innerHTML = "";
 
 // Create the grid
@@ -89,7 +124,10 @@ function draw() {
 //Draw the aliens
 draw();
 
+//Start the timer
 startTimer();
+
+// calculateFPS();
 
 //Setting the shooter at the correct start position
 squares[currentShooterIndex].classList.add("shooter");
@@ -103,34 +141,19 @@ function remove() {
   }
 }
 
-// Move the shooter
-// function moveShooter(e) {
-//   if (gameOver || gamePaused) return; // Stop the shooter movement after game over or if the game is paused
-//   squares[currentShooterIndex].classList.remove("shooter");
-
-//   switch (e.key) {
-//     case "ArrowLeft":
-//       if (currentShooterIndex % width !== 0) currentShooterIndex -= 1;
-//       break;
-//     case "ArrowRight":
-//       if (currentShooterIndex % width < width - 1) currentShooterIndex += 1;
-//       break;
-//   }
-
-//   squares[currentShooterIndex].classList.add("shooter");
-// }
-
 // Control shooter movement
 document.addEventListener("keydown", moveShooter);
 
 // Resets game state but keep track of lives
 function resetGame() {
   clearActiveLasers();
+  clearActiveBombs();
   gameOver = false;
   win = false;
   currentShooterIndex = 202;
   aliensRemoved.length = 0; // Reset the removed aliens array
 
+  //Maximum of 10 levels
   if (cleared && level < 11) {
     level++;
     alienMoveInterval -= 50;
@@ -140,13 +163,9 @@ function resetGame() {
     win = true;
   }
 
+  //Clear the screen
   for (let i = 0; i <= 224; i++) {
-    if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
-      squares[i].classList.remove("shooter");
-    }
-    if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
-      squares[i].classList.remove("laser");
-    }
+    squares[i].classList.remove("shooter", "laser", "invader", "boom", "bomb");
   }
 
   remove(); // Clear the current invader positions from the grid
@@ -164,6 +183,15 @@ function resetGame() {
   globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
 }
 
+// Function to pick a random alien that will drop a bomb
+function getRandomAlien() {
+  let validAliens = alienInvaders.filter((alien) => alien !== -1); // Recalculate valid aliens
+  if (validAliens.length > 0) {
+    return validAliens[Math.floor(Math.random() * validAliens.length)];
+  }
+  return -1;
+}
+
 // Move the invaders
 function moveInvaders(timestamp) {
   if (gameOver || gamePaused) return; // Stop updating the game if game is over
@@ -171,7 +199,7 @@ function moveInvaders(timestamp) {
   if (win) {
     gameOver = true;
     stopTimer();
-    resultDisplay.innerHTML = "You WIN!";
+    resultDisplay.innerHTML = `You WON in ${formatTime(elapsedTime)}!`;
     optionsMenu.style.display = "block";
     pauseGame();
     return;
@@ -182,16 +210,8 @@ function moveInvaders(timestamp) {
     isResetting = true;
     cancelAnimationFrame(globalID);
     squares[currentShooterIndex].classList.remove("shooter");
-    // for (let i = 0; i <= 224; i++) {
-    //   if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
-    //     squares[i].classList.remove("shooter");
-    //   }
-    //   if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
-    //     squares[i].classList.remove("laser");
-    //   }
-    // }
     cleared = true;
-    setTimeout(resetGame, 1000);
+    resetGame();
   }
 
   let invaderCrossed = false;
@@ -206,22 +226,13 @@ function moveInvaders(timestamp) {
   if (invaderCrossed) {
     lives--; // Decrease lives when player is hit
     liveStat.innerHTML = lives;
-    console.log(lives);
     if (lives > 0) {
       isResetting = true;
       cancelAnimationFrame(globalID);
       squares[currentShooterIndex].classList.remove("shooter");
-      //   for (let i = 0; i <= 224; i++) {
-      //     if (squares[i] !== -1 && squares[i].classList.contains("shooter")) {
-      //       squares[i].classList.remove("shooter");
-      //     }
-      //     if (squares[i] !== -1 && squares[i].classList.contains("laser")) {
-      //       squares[i].classList.remove("laser");
-      //     }
-      //   }
       setTimeout(resetGame, 1000); // Reset after a brief delay
     } else {
-      resultDisplay.innerHTML = "Game Over";
+      resultDisplay.innerHTML = `You LOST in ${formatTime(elapsedTime)}!`;
       stopTimer();
       gameOver = true;
       cancelAnimationFrame(globalID);
@@ -380,12 +391,14 @@ document.addEventListener("keyup", (e) => {
   }
 });
 
+//Stops the game
 function pauseGame() {
   stopTimer();
   gamePaused = true;
   cancelAnimationFrame(globalID);
 }
 
+//Resumes the game
 function continueGame() {
   gamePaused = false;
   if (!gameOver) {
@@ -394,8 +407,10 @@ function continueGame() {
   }
 }
 
+//Restarts the game
 function restartGame() {
   clearActiveLasers(); // Clear all active lasers when restarting the game
+  clearActiveBombs();
   elapsedTime = 0;
   gameOver = false;
   win = false;
@@ -412,11 +427,10 @@ function restartGame() {
   levelStat.innerHTML = level;
   resultDisplay.innerHTML = "";
 
+  //Clear the screen
   for (let i = 0; i <= 224; i++) {
-    squares[i].classList.remove("shooter", "laser", "invader", "boom");
+    squares[i].classList.remove("shooter", "laser", "invader", "boom", "bomb");
   }
-
-  //   remove(); // Clear the current invader positions from the grid
 
   // Reset alien positions to the initial layout
   alienInvaders = [
@@ -438,6 +452,7 @@ function restartGame() {
   globalID = requestAnimationFrame(moveInvaders); // Resume the game loop
 }
 
+//Stops the game and opens the menu
 menuBtn.addEventListener("click", function () {
   if (optionsMenu.style.display === "block") {
     optionsMenu.style.display = "none";
@@ -448,12 +463,81 @@ menuBtn.addEventListener("click", function () {
   }
 });
 
+//Closes the menu and resumes the game
 continueBtn.addEventListener("click", function () {
   optionsMenu.style.display = "none";
   continueGame();
 });
 
+//Closes the menu and restarts the game
 restartBtn.addEventListener("click", function () {
   optionsMenu.style.display = "none";
   restartGame();
 });
+
+function dropBomb() {
+  if (!gameOver && !isResetting && !gamePaused) {
+    let bombIndex = getRandomAlien(); // Choose a new alien to drop a bomb each time
+
+    if (bombIndex === -1) return; // No valid aliens left to drop bombs
+
+    // Continue dropping the bomb down the grid
+    bombID = setInterval(() => {
+      // Check if the game is paused
+      if (gamePaused) {
+        clearInterval(bombID); // Stop the bomb movement if paused
+        squares[bombIndex].classList.remove("bomb");
+        return; // Exit the function
+      }
+
+      squares[bombIndex].classList.remove("bomb"); // Clear previous bomb position
+      bombIndex += width; // Move bomb down by the grid width
+
+      if (bombIndex >= squares.length) {
+        clearInterval(bombID); // Bomb out of bounds
+        return;
+      }
+
+      squares[bombIndex].classList.add("bomb");
+
+      // Bomb hits the shooter
+      if (squares[bombIndex].classList.contains("shooter")) {
+        squares[bombIndex].classList.remove("bomb");
+
+        squares[bombIndex].classList.add("boom"); // Add boom effect
+        lives--; // Decrease player's lives
+        liveStat.innerHTML = lives;
+
+        if (lives <= 0) {
+          // Game over when lives run out
+          gameOver = true;
+          resultDisplay.innerHTML = `You LOST in ${formatTime(elapsedTime)}!`;
+          stopTimer();
+          cancelAnimationFrame(globalID);
+          optionsMenu.style.display = "block";
+          pauseGame();
+        } else {
+          // Show the shooter again after a brief delay
+          setTimeout(() => {
+            squares[currentShooterIndex].classList.add("shooter"); // Show the shooter
+            squares[bombIndex].classList.remove("boom"); // Remove the boom effect
+          }, 500); // Delay for the boom effect (500ms)
+        }
+
+        clearInterval(bombID); // Stop the bomb movement
+        return;
+      }
+    }, 300); // Control bomb drop speed
+
+    activeBombs.push(bombID); // Keep track of active bombs
+  }
+}
+
+bombID = setInterval(dropBomb, dropBombInterval);
+
+// Clear all active bombs (used on reset or game over)
+function clearActiveBombs() {
+  activeBombs.forEach(clearInterval);
+  activeBombs = [];
+}
+
